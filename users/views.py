@@ -1,59 +1,75 @@
+import json
+from typing import TypedDict
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.request import Request
+
+User = TypedDict('User', {'id': int, 'name': str, 'age': int})
+FILE = 'users.json'
 
 
-class TestView(APIView):
-    def get(self, request):
-        return Response("method get")
+class FileTools:
+    @property
+    def users(self) -> list[User]:
+        try:
+            with open(FILE) as file:
+                return json.load(file)
+        except:
+            return []
 
-    def post(self, request):
-        return Response("method post")
-
-    def put(self, request):
-        return Response("method put")
-
-    def patch(self, request):
-        return Response("method patch")
-
-    def delete(self, request):
-        return Response("method delete")
+    @staticmethod
+    def save(users: list[User]) -> None:
+        with open(FILE, 'w') as file:
+            json.dump(users, file)
 
 
-users = [
-    {'id': 1, 'name': 'Max', 'age': 15},
-    {'id': 2, 'name': 'Taras', 'age': 25},
-    {'id': 3, 'name': 'Nikolas', 'age': 35},
-    {'id': 4, 'name': 'Jony', 'age': 30},
-]
-
-
-class UserListCreateView(APIView):
-    def get(self, request):
-        return Response(users)
+class UserListCreateView(APIView, FileTools):
+    def get(self, *args, **kwargs):
+        return Response(self.users)
 
     def post(self, *args, **kwargs):
-        new_user = self.request.data
-        users.append(new_user)
-        return Response(new_user)
+        users = self.users
+        user = self.request.data
+        user['id'] = users[-1]['id'] + 1 if users else 1
+        users.append(user)
+        try:
+            self.save(users)
+        except:
+            return Response('Error')
 
-    def post(self, *args, **kwargs):
-        params_dict = self.request.query_params.dict()
-        print(params_dict)
-        new_user = self.request.data
-        users.append(new_user)
-        return Response(new_user)
+        return Response(user)
 
 
-class UserRetrieveUpdateDestroy(APIView):
+class UserRetrieveUpdateDestroyView(APIView, FileTools):
     def get(self, *args, **kwargs):
         pk = kwargs.get('pk')
-        for user in users:
-            if user['id'] == pk:
-                return Response(user)
-            return Response('Not found')
-    #      pk = kwargs.get('pk')
-    # for user in users:
-    #        if user['id']==pk:
-    #               return Response(user)
-    #              return Response('Not Found')
+        user = next((item for item in self.users if item['id'] == pk), None)
+        if not user:
+            return Response('Not found user')
+        return Response(user)
+
+    def put(self, *args, **kwargs):
+        pk = kwargs.get('pk')
+        users = self.users
+        user = next((item for item in users if item['id'] == pk), None)
+        if not user:
+            return Response('Not found user')
+        user |= self.request.data
+        try:
+            self.save(users)
+        except:
+            return Response('Error')
+        return Response(user)
+
+    def delete(self, *args, **kwargs):
+        pk = kwargs.get('pk')
+        users = self.users
+        index = next((i for i, item in enumerate(users) if item['id'] == pk), None)
+        if index is None:
+            return Response('Not found user')
+        del users[index]
+        try:
+            self.save(users)
+        except:
+            return Response('Error')
+
+        return Response('deleted')
