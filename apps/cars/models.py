@@ -17,7 +17,9 @@ class CarModel(models.Model):
         db_table = 'cars'
 
     brand = models.CharField(max_length=20)
-    year = models.IntegerField
-    seats = models.IntegerField
-    budy = models.CharField(max_length=20)
-    engine = models.FloatField()
+    year = models.IntegerField()
+    price = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+
