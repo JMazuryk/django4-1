@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asgiref = "==3.5.2"
+django = "==4.1.1"
+djangorestframework = "==3.13.1"
+gensim = "==4.2.0"
+mysqlclient = "==2.1.1"
+numpy = "==1.23.2"
+pytz = "==2022.2.1"
+scipy = "==1.9.1"
+smart-open = "==6.1.0"
+sqlparse = "==0.4.2"
+djangorestframework-simplejwt = "*"
+
+[dev-packages]
+isort = "*"
+
+[requires]
+python_version = "3.10"
